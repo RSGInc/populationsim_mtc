@@ -100,11 +100,13 @@ NEW_PERSON_RECORD_COLUMNS = [
 
 import logging, os, pathlib, sys, time
 import numpy, pandas
+import workflow_config_reader as wcfg
 
-CROSSWALK_FILE      = pathlib.Path("hh_gq/data/geo_cross_walk_tm1.csv")
-PUMS_INPUT_DIR      = pathlib.Path("hh_gq/data")
-PUMS_HOUSEHOLD_FILE = "hbayarea1721.csv"
-PUMS_PERSON_FILE    = "pbayarea1721.csv"
+cfg = wcfg.load_config()
+CROSSWALK_FILE      = wcfg.data_path(cfg['seed']['crosswalk_file'])
+PUMS_INPUT_DIR      = pathlib.Path(cfg['data_dir'])
+PUMS_HOUSEHOLD_FILE = cfg['seed']['pums_household_file']
+PUMS_PERSON_FILE    = cfg['seed']['pums_person_file']
 
 # First two characters of socp00 or socp10 to occupation code
 # occupation: 
@@ -146,7 +148,7 @@ if __name__ == '__main__':
     pandas.options.display.max_rows = 1000
 
     NOW = time.strftime("%Y%b%d_%H%M")
-    LOG_FILE = pathlib.Path("hh_gq/data") / "create_seed_population_{}.log".format(NOW)
+    LOG_FILE = pathlib.Path(cfg['data_dir']) / "create_seed_population_{}.log".format(NOW)
     print("Creating log file {}".format(LOG_FILE))
 
     # create logger
@@ -298,7 +300,7 @@ if __name__ == '__main__':
 
     # add household income in 2000 dollars, by deflating hh_income_2021
     # https://github.com/BayAreaMetro/modeling-website/wiki/InflationAssumptions
-    pums_hu_df['hh_income_2000'] = pums_hu_df['hh_income_2021']/1.81
+    pums_hu_df['hh_income_2000'] = pums_hu_df['hh_income_2021'] / cfg['income']['deflator_2021_to_2000']
 
     # extract the occupation code -- first two characters
     pums_pers_df['soc'] = pums_pers_df.SOCP.str[:2]                                   
@@ -393,11 +395,12 @@ if __name__ == '__main__':
     clean_types(pums_pers_df)
 
     # write combined housing records and person records
-    if not os.path.exists(pathlib.Path("hh_gq\data")): os.mkdir(pathlib.Path("hh_gq\data"))
-    outfile = pathlib.Path("hh_gq\data\seed_households.csv")
+    data_dir = pathlib.Path(cfg['data_dir'])
+    if not os.path.exists(data_dir): os.mkdir(data_dir)
+    outfile = data_dir / cfg['seed']['output_households']
     pums_hu_df.to_csv(outfile, index=False)
     logging.info("Wrote household and group quarters housing records to {}".format(outfile))
 
-    outfile = pathlib.Path("hh_gq\data\seed_persons.csv")
+    outfile = data_dir / cfg['seed']['output_persons']
     pums_pers_df.to_csv(outfile, index=False)
     logging.info("Wrote household and group quarters person  records to {}".format(outfile))

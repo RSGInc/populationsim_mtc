@@ -15,6 +15,7 @@ For TM2:
 
 import argparse, pathlib, sys
 import numpy, pandas
+import workflow_config_reader as wcfg
 
 if __name__ == '__main__':
     pandas.options.display.width    = 180
@@ -24,10 +25,12 @@ if __name__ == '__main__':
     parser.add_argument("--model_type", choices=['TM1','TM2'],   help="Model type - one of TM1 or TM2")
     args = parser.parse_args()
 
+    cfg = wcfg.load_config()
+
     if args.model_type == 'TM1':
-        # control files are: 
+        # control files are:
         #  - [run_num]_taz_summaries_[year].csv
-        taz_controls_file = pathlib.Path("hh_gq/data/taz_summaries.csv")
+        taz_controls_file = wcfg.data_path(cfg['controls']['TM1']['taz_input'])
         taz_controls_df   = pandas.read_csv(taz_controls_file)
         print("Read {} controls from {}".format(len(taz_controls_df), taz_controls_file))
 
@@ -47,7 +50,7 @@ if __name__ == '__main__':
 
         # note that hh_wrks and hh_inc categories specify households.TYPE==1 so no need to modify those
 
-        taz_controls_output = pathlib.Path("hh_gq/data/taz_summaries_hhgq.csv")
+        taz_controls_output = wcfg.data_path(cfg['controls']['TM1']['taz_output'])
         taz_controls_df.to_csv(taz_controls_output, index=False)
         print("Wrote {}".format(taz_controls_output))
 
@@ -80,7 +83,7 @@ if __name__ == '__main__':
         # print(f"Wrote {county_controls_file}")
 
     elif args.model_type == 'TM2':
-        maz_controls_file = pathlib.Path("hh_gq/data/maz_marginals.csv")
+        maz_controls_file = wcfg.data_path(cfg['controls']['TM2']['maz_input'])
         maz_controls_df   = pandas.read_csv(maz_controls_file)
         print("Read {} controls from {}".format(len(maz_controls_df), maz_controls_file))
         print(maz_controls_df.head())
@@ -92,6 +95,6 @@ if __name__ == '__main__':
 
         # note that hh_wrks and hh_inc categories specify households.TYPE==1 so no need to modify those
 
-        maz_controls_output = pathlib.Path("hh_gq/data/maz_marginals_hhgq.csv")
+        maz_controls_output = wcfg.data_path(cfg['controls']['TM2']['maz_output'])
         maz_controls_df.to_csv(maz_controls_output, index=False)
         print("Wrote {}".format(maz_controls_output))

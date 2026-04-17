@@ -1,0 +1,46 @@
+# Workflow configuration for populationsim bay area runs
+# This file centralizes paths and parameters used by the Python scripts.
+# The batch file (run_populationsim.bat) has its own variables at the top.
+
+# Data directory (relative to bay_area/)
+data_dir: "hh_gq/data"
+
+# Seed population
+seed:
+  crosswalk_file: "geo_cross_walk_tm1.csv"
+  pums_household_file: "hbayarea1721.csv"
+  pums_person_file: "pbayarea1721.csv"
+  output_households: "seed_households.csv"
+  output_persons: "seed_persons.csv"
+
+# Controls files (relative to data_dir)
+controls:
+  TM1:
+    taz_input: "taz_summaries.csv"
+    taz_output: "taz_summaries_hhgq.csv"
+  TM2:
+    maz_input: "maz_marginals.csv"
+    maz_output: "maz_marginals_hhgq.csv"
+
+# Economic parameters
+income:
+  # CPI deflator from 2021 PUMS dollars to 2000 dollars
+  # Source: https://github.com/BayAreaMetro/modeling-website/wiki/InflationAssumptions
+  deflator_2021_to_2000: 1.81
+  # Income category thresholds (in 2000 dollars) for hinccat1
+  hinccat1_thresholds: [20000, 50000, 100000]
+
+# Poverty parameters by model year
+# Source: https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines
+poverty:
+  2015:
+    dollars_2000_to_modelyear: 1.43
+    income_first_person: 11770
+    income_each_additional: 4160
+  2023:
+    dollars_2000_to_modelyear: 1.88
+    income_first_person: 14580
+    income_each_additional: 5140
+
+# Number of counties (for postprocessing county summaries)
+num_counties: 9

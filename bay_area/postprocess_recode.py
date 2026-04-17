@@ -24,6 +24,7 @@ Basic functions:
 """
 import argparse, collections, logging, pathlib, sys
 import pandas
+import workflow_config_reader as wcfg
 
 # based on: https://github.com/BayAreaMetro/modeling-website/wiki/PopSynHousehold, PopSyn scripts
 HOUSING_COLUMNS = {
@@ -96,6 +97,8 @@ if __name__ == '__main__':
     parser.add_argument("--year",      type=int, help="Model year (used for poverty level calculations)", required=True)
     args = parser.parse_args()
 
+    cfg = wcfg.load_config()
+
     LOG_FILE = pathlib.Path(args.directory) / "postprocess_recode.log"
     # create logger
     logger = logging.getLogger()
@@ -113,7 +116,7 @@ if __name__ == '__main__':
   
     # read the geo cross walk
     if args.model_type == 'TM1':
-      geocrosswalk_df = pandas.read_csv(pathlib.Path("hh_gq/data/geo_cross_walk_tm1.csv"))
+      geocrosswalk_df = pandas.read_csv(wcfg.data_path(cfg['seed']['crosswalk_file']))
       # print(geocrosswalk_df.head())
     if args.model_type == 'TM2':
       print("Not implemented")
@@ -154,7 +157,7 @@ if __name__ == '__main__':
     )
 
     # in the county summary files, columns are named differently
-    for county_num in range(1,10):
+    for county_num in range(1, cfg['num_counties'] + 1):
         county_result_file = pathlib.Path(args.directory) / "final_summary_COUNTY_{}.csv".format(county_num)
         county_result_df = pandas.read_csv(county_result_file, 
                                            usecols=['control_name','control_value','TAZ_integer_weight'])
@@ -199,31 +202,25 @@ if __name__ == '__main__':
 
     if args.model_type == 'TM1': 
         # add hinccat1 as variable for tm1, group hh_income_2000 by tm1 income categories
+        thresholds = cfg['income']['hinccat1_thresholds']
         households_df['hinccat1'] = 0
-        households_df.loc[                              (households_df.HINC< 20000), 'hinccat1'] = 1
-        households_df.loc[ (households_df.HINC>= 20000)&(households_df.HINC< 50000), 'hinccat1'] = 2
-        households_df.loc[ (households_df.HINC>= 50000)&(households_df.HINC<100000), 'hinccat1'] = 3
-        households_df.loc[ (households_df.HINC>=100000)                            , 'hinccat1'] = 4
+        households_df.loc[                                       (households_df.HINC< thresholds[0]), 'hinccat1'] = 1
+        households_df.loc[ (households_df.HINC>= thresholds[0])&(households_df.HINC< thresholds[1]), 'hinccat1'] = 2
+        households_df.loc[ (households_df.HINC>= thresholds[1])&(households_df.HINC< thresholds[2]), 'hinccat1'] = 3
+        households_df.loc[ (households_df.HINC>= thresholds[2])                                    , 'hinccat1'] = 4
         # recode -9 HHT to 0
         households_df.loc[ households_df.HHT==-9, 'HHT'] = 0
 
         # add poverty level calculation
         # use model year to translate household income from 2000 dollars into the model year dollars
         # Source: https://github.com/BayAreaMetro/modeling-website/wiki/InflationAssumptions
-        DOLLARS_2000_TO_MODELYEAR  = 1.0
         # Source: https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/prior-hhs-poverty-guidelines-federal-register-references
-        INC_FIRST_PERSON           = 0
-        INC_EACH_ADDITIONAL_PERSON = 0
-        if args.year == 2015:
-          DOLLARS_2000_TO_MODELYEAR  = 1.43
-          INC_FIRST_PERSON           = 11770
-          INC_EACH_ADDITIONAL_PERSON = 4160
-        elif args.year >= 2023:
-          DOLLARS_2000_TO_MODELYEAR  = 1.88
-          INC_FIRST_PERSON           = 14580
-          INC_EACH_ADDITIONAL_PERSON = 5140
-        else:
-          raise RuntimeError(f"Model year {args.year} not supported for poverty calculation")
+        poverty_cfg = cfg['poverty'].get(args.year)
+        if poverty_cfg is None:
+          raise RuntimeError(f"Model year {args.year} not found in workflow_config.yaml poverty section")
+        DOLLARS_2000_TO_MODELYEAR  = poverty_cfg['dollars_2000_to_modelyear']
+        INC_FIRST_PERSON           = poverty_cfg['income_first_person']
+        INC_EACH_ADDITIONAL_PERSON = poverty_cfg['income_each_additional']
         
         # calculate poverty threshold income in args.year dollars
         households_df[f'poverty_income_{args.year}d'] = INC_FIRST_PERSON + (households_df.PERSONS-1)*INC_EACH_ADDITIONAL_PERSON

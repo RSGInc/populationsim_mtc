@@ -31,7 +31,7 @@ set TMPATH=E:\projects\clients\solanoNapa\GitHub\RSG\travel-model-one\utilities\
 :: Note: This is equivalent to PBA50Plus_Final_Blueprint_v65 but it includes interim year output
 set BAUS_RUNNUM=run0
 :: OUTPUT DIR will be X:\populationsim_outputs\hh_gq\output_!OUTPUT_SUFFIX!_!YEAR!!PUMA_SUFFIX!_!BAUS_RUNNUM!
-set OUTPUT_SUFFIX=mtc_test_run
+set OUTPUT_SUFFIX=update_structure
 
 :: assume argument is year
 set YEARS=%1
