@@ -4,6 +4,18 @@
 ::
 :: e.g. run_populationsim 2010
 ::
+:: Prerequisites:
+::   1. Activate the popsim conda environment: conda activate popsim
+::   2. Download ACS PUMS 2017-2021 5-year data for California from:
+::      https://www2.census.gov/programs-surveys/acs/data/pums/2021/5-Year/
+::      Files needed: csv_hca.zip (housing) and csv_pca.zip (person)
+::   3. Filter the CA PUMS data to Bay Area PUMAs using filter_pums_to_bayarea.py
+::      This produces hbayarea1721.csv and pbayarea1721.csv in hh_gq\data\
+::   4. Seed files (seed_households.csv, seed_persons.csv) will be generated
+::      automatically by create_seed_population.py on first run
+::   5. Verify TMPATH below points to your local copy of the travel-model-one
+::      taz-data-baseyears directory
+::
 echo on
 setlocal EnableDelayedExpansion
 
@@ -12,13 +24,14 @@ set MODELTYPE=TM1
 
 :: for a forecast, copies marginals from         "%URBANSIMPATH%\travel_model_summaries\%BAUS_RUNNUM%_xxx_summaries_!YEAR!.csv"
 :: for past/current year, copies marginals from  "%TMPATH%\!YEAR!""
-set TMPATH=X:\travel-model-one-master\utilities\taz-data-baseyears
-set URBANSIMPATH=\\tsclient\C\Users\ywang\Box\Modeling and Surveys\Urban Modeling\Bay Area UrbanSim\PBA50\Final Blueprint runs\Final Blueprint (s24)\BAUS v2.25 - FINAL VERSION
+set TMPATH=E:\projects\clients\solanoNapa\GitHub\RSG\travel-model-one\utilities\taz-data-baseyears
+:: URBANSIMPATH only needed for forecast years (FORECAST=1)
+:: set URBANSIMPATH=\\tsclient\C\Users\ywang\Box\Modeling and Surveys\Urban Modeling\Bay Area UrbanSim\PBA50\Final Blueprint runs\Final Blueprint (s24)\BAUS v2.25 - FINAL VERSION
 :: used in OUTPUT_SUFFIX as well; use "census" for non-BAUS-based run
 :: Note: This is equivalent to PBA50Plus_Final_Blueprint_v65 but it includes interim year output
-set BAUS_RUNNUM=run182
+set BAUS_RUNNUM=run0
 :: OUTPUT DIR will be X:\populationsim_outputs\hh_gq\output_!OUTPUT_SUFFIX!_!YEAR!!PUMA_SUFFIX!_!BAUS_RUNNUM!
-set OUTPUT_SUFFIX=STIP2026_RTP2021FBP_20251113
+set OUTPUT_SUFFIX=mtc_test_run
 
 :: assume argument is year
 set YEARS=%1
@@ -103,7 +116,7 @@ for %%Y in (!YEARS!) do (
   if ERRORLEVEL 1 goto error
 
   rem create the final output directory that populationsim will write to
-  set OUTPUT_DIR=X:\populationsim_outputs\hh_gq\output_!OUTPUT_SUFFIX!_!YEAR!!PUMA_SUFFIX!_!BAUS_RUNNUM!
+  set OUTPUT_DIR=E:\projects\clients\solanoNapa\Tasks\PopulationSim\populationsim_mtc\bay_area\output_!OUTPUT_SUFFIX!_!YEAR!!PUMA_SUFFIX!_!BAUS_RUNNUM!
   echo OUTPUT_DIR=[!OUTPUT_DIR!]
   if not exist !OUTPUT_DIR! ( mkdir !OUTPUT_DIR! )
 

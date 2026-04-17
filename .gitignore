@@ -29,6 +29,13 @@ var/
 .installed.cfg
 *.egg
 
+# PUMS filtered data (large, regenerate with filter_pums_to_bayarea.py)
+bay_area/hh_gq/data/hbayarea1721.csv
+bay_area/hh_gq/data/pbayarea1721.csv
+
+# PopulationSim output directories
+bay_area/output_*/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt

@@ -228,7 +228,7 @@ def build_grouped_incidence_table(incidence_table, control_spec, seed_geography)
     hh_incidence_table['group_id'] = hh_incidence_table[hh_groupby_cols].merge(
         group_incidence_table[hh_groupby_cols + ['group_id']],
         on=hh_groupby_cols,
-        how='left').group_id.astype(int).values
+        how='left').group_id.fillna(-1).astype(int).values
 
     # it doesn't really matter what the incidence_table index is until we create population
     # when we need to expand each group to constituent households

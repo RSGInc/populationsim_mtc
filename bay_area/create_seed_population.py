@@ -102,7 +102,7 @@ import logging, os, pathlib, sys, time
 import numpy, pandas
 
 CROSSWALK_FILE      = pathlib.Path("hh_gq/data/geo_cross_walk_tm1.csv")
-PUMS_INPUT_DIR      = pathlib.Path("M:/Data/Census/PUMS/PUMS 2017-21")
+PUMS_INPUT_DIR      = pathlib.Path("hh_gq/data")
 PUMS_HOUSEHOLD_FILE = "hbayarea1721.csv"
 PUMS_PERSON_FILE    = "pbayarea1721.csv"
 
